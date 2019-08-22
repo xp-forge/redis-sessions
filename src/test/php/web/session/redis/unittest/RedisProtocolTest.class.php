@@ -9,4 +9,9 @@ class RedisProtocolTest extends TestCase {
   public function can_create() {
     new RedisProtocol('redis://localhost');
   }
+
+  #[@test]
+  public function can_create_with_auth() {
+    new RedisProtocol('redis://secret@localhost');
+  }
 }
