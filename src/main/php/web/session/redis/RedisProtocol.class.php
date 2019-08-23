@@ -20,18 +20,28 @@ class RedisProtocol implements Closeable {
    * Creates a new protocol instance
    *
    * @param  string|util.URI|peer.Socket $conn
-   * @param  ?string|?util.Secret $auth
+   * @param  ?string|?util.Secret $authentication
    */
-  public function __construct($conn, $auth= null) {
+  public function __construct($conn, $authentication= null) {
     if ($conn instanceof Socket) {
       $this->conn= $conn;
-      $this->auth= null === $auth ? null : ($auth instanceof Secret ? $auth : new Secret($auth));
     } else {
       $uri= $conn instanceof URI ? $conn : new URI($conn);
       $this->conn= new Socket($uri->host(), $uri->port() ?: 6379);
-      $this->auth= null === $auth ? new Secret($uri->user()) : ($auth instanceof Secret ? $auth : new Secret($auth));
+      if (null === $authentication) $authentication= $uri->user();
+    }
+
+    if (null == $authentication) {
+      $this->auth= null;
+    } else if ($authentication instanceof Secret) {
+      $this->auth= $authentication;
+    } else {
+      $this->auth= new Secret($authentication);
     }
   }
+
+  /** @return util.Secret */
+  public function authentication() { return $this->auth; }
 
   /**
    * Connect and authenticate, if necessary

@@ -3,6 +3,7 @@
 use peer\AuthenticationException;
 use peer\Socket;
 use unittest\TestCase;
+use util\Secret;
 use web\session\redis\RedisProtocol;
 
 class RedisProtocolTest extends TestCase {
@@ -15,6 +16,27 @@ class RedisProtocolTest extends TestCase {
   #[@test]
   public function can_create_with_auth() {
     new RedisProtocol('redis://secret@localhost');
+  }
+
+  #[@test]
+  public function no_authentication() {
+    $this->assertNull((new RedisProtocol('redis://localhost'))->authentication());
+  }
+
+  #[@test]
+  public function authentication_via_connection_string() {
+    $this->assertEquals(
+      'secret',
+      (new RedisProtocol('redis://secret@localhost'))->authentication()->reveal()
+    );
+  }
+
+  #[@test, @values(['secret', new Secret('secret')])]
+  public function authentication_via_parameter($value) {
+    $this->assertEquals(
+      'secret',
+      (new RedisProtocol('redis://localhost', $value))->authentication()->reveal()
+    );
   }
 
   #[@test]
