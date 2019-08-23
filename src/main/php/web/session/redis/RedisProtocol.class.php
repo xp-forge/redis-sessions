@@ -43,6 +43,9 @@ class RedisProtocol implements Closeable {
   /** @return ?util.Secret */
   public function authentication() { return $this->auth; }
 
+  /** @return string */
+  public function endpoint() { return $this->conn->host.':'.$this->conn->port; }
+
   /**
    * Connect and authenticate, if necessary
    *
@@ -105,21 +108,35 @@ class RedisProtocol implements Closeable {
   }
 
   /**
-   * Sends request and reads response
+   * Sends command and reads response
    *
    * @param  var... $args
    * @return var 
    * @throws peer.ProtocolException
    */
-  public function send(... $args) {
-    $this->conn->isConnected() || $this->connect();
-
-    $s= '*'.sizeof($args)."\r\n";
+  public function command(... $args) {
+    $line= '*'.sizeof($args)."\r\n";
     foreach ($args as $arg) {
-      $s.= '$'.strlen($arg)."\r\n".$arg."\r\n";
+      $line.= '$'.strlen($arg)."\r\n".$arg."\r\n";
     }
 
-    $this->conn->write($s);
+    $this->conn->isConnected() || $this->connect();
+    $this->conn->write($line);
+    return $this->read();
+  }
+
+  /**
+   * Sends a line and reads response
+   *
+   * @param  ?string $line Pass NULL to only read
+   * @return var 
+   * @throws peer.ProtocolException
+   */
+  public function send($line) {
+    $this->conn->isConnected() || $this->connect();
+    if (null !== $line) {
+      $this->conn->write($line."\r\n");
+    }
     return $this->read();
   }
 

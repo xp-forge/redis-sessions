@@ -77,7 +77,7 @@ class RedisProtocolTest extends TestCase {
     $io= new Channel("+OK\r\n");
     $fixture= new RedisProtocol($io);
 
-    $fixture->send('ECHO', 'test');
+    $fixture->command('ECHO', 'test');
     $this->assertTrue($io->connected);
   }
 
@@ -108,7 +108,7 @@ class RedisProtocolTest extends TestCase {
   public function set() {
     $io= new Channel("+OK\r\n");
 
-    $result= (new RedisProtocol($io))->send('SET', 'key', 'value');
+    $result= (new RedisProtocol($io))->command('SET', 'key', 'value');
     $this->assertEquals("*3\r\n\$3\r\nSET\r\n\$3\r\nkey\r\n\$5\r\nvalue\r\n", $io->out);
     $this->assertEquals('OK', $result);
   }
@@ -117,7 +117,7 @@ class RedisProtocolTest extends TestCase {
   public function exists() {
     $io= new Channel(":1\r\n");
 
-    $result= (new RedisProtocol($io))->send('EXISTS', 'key');
+    $result= (new RedisProtocol($io))->command('EXISTS', 'key');
     $this->assertEquals("*2\r\n\$6\r\nEXISTS\r\n\$3\r\nkey\r\n", $io->out);
     $this->assertEquals(1, $result);
   }
@@ -126,7 +126,7 @@ class RedisProtocolTest extends TestCase {
   public function get() {
     $io= new Channel("\$5\r\nvalue\r\n");
 
-    $result= (new RedisProtocol($io))->send('GET', 'key');
+    $result= (new RedisProtocol($io))->command('GET', 'key');
     $this->assertEquals("*2\r\n\$3\r\nGET\r\n\$3\r\nkey\r\n", $io->out);
     $this->assertEquals('value', $result);
   }
@@ -135,7 +135,7 @@ class RedisProtocolTest extends TestCase {
   public function get_non_existant() {
     $io= new Channel("\$-1\r\n");
 
-    $result= (new RedisProtocol($io))->send('GET', 'key');
+    $result= (new RedisProtocol($io))->command('GET', 'key');
     $this->assertEquals("*2\r\n\$3\r\nGET\r\n\$3\r\nkey\r\n", $io->out);
     $this->assertEquals(null, $result);
   }
@@ -144,7 +144,7 @@ class RedisProtocolTest extends TestCase {
   public function get_empty_string() {
     $io= new Channel("\$0\r\n\r\n");
 
-    $result= (new RedisProtocol($io))->send('GET', 'key');
+    $result= (new RedisProtocol($io))->command('GET', 'key');
     $this->assertEquals("*2\r\n\$3\r\nGET\r\n\$3\r\nkey\r\n", $io->out);
     $this->assertEquals('', $result);
   }
@@ -153,7 +153,7 @@ class RedisProtocolTest extends TestCase {
   public function keys() {
     $io= new Channel("*2\r\n\$3\r\nkey\r\n\$5\r\ncolor\r\n");
 
-    $result= (new RedisProtocol($io))->send('KEYS', '*');
+    $result= (new RedisProtocol($io))->command('KEYS', '*');
     $this->assertEquals("*2\r\n\$4\r\nKEYS\r\n\$1\r\n*\r\n", $io->out);
     $this->assertEquals(['key', 'color'], $result);
   }
@@ -161,6 +161,6 @@ class RedisProtocolTest extends TestCase {
   #[@test, @expect(ProtocolException::class)]
   public function protocol_error() {
     $io= new Channel("-ERR unknown command\r\n");
-    (new RedisProtocol($io))->send('NOT-A-REDIS-COMMAND');
+    (new RedisProtocol($io))->command('NOT-A-REDIS-COMMAND');
   }
 }

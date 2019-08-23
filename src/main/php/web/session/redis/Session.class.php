@@ -26,12 +26,12 @@ class Session implements ISession {
 
   /** @return bool */
   public function valid() {
-    return $this->protocol->send('TTL', 'session:'.$this->id) > 0;
+    return $this->protocol->command('TTL', 'session:'.$this->id) > 0;
   }
 
   /** @return void */
   public function destroy() {
-    $this->protocol->send('DEL', 'session:'.$this->id);
+    $this->protocol->command('DEL', 'session:'.$this->id);
   }
 
   /**
@@ -41,7 +41,7 @@ class Session implements ISession {
    */
   public function keys() {
     $r= [];
-    foreach ($this->protocol->send('HKEYS', 'session:'.$this->id) as $key) {
+    foreach ($this->protocol->command('HKEYS', 'session:'.$this->id) as $key) {
       '_' === $key || $r[]= $key;
     }
     return $kr;
@@ -56,7 +56,7 @@ class Session implements ISession {
    * @throws web.session.SessionInvalid
    */
   public function register($name, $value) {
-    $this->protocol->send('HSET', 'session:'.$this->id, $name, json_encode($value));
+    $this->protocol->command('HSET', 'session:'.$this->id, $name, json_encode($value));
   }
 
   /**
@@ -68,7 +68,7 @@ class Session implements ISession {
    * @throws web.session.SessionInvalid
    */
   public function value($name, $default= null) {
-    $value= $this->protocol->send('HGET', 'session:'.$this->id, $name);
+    $value= $this->protocol->command('HGET', 'session:'.$this->id, $name);
     return null === $value ? $default : json_decode($value, true);
   }
 
@@ -80,7 +80,7 @@ class Session implements ISession {
    * @throws web.session.SessionInvalid
    */
   public function remove($name) {
-    $this->protocol->send('HDEL', 'session:'.$this->id, $name);
+    $this->protocol->command('HDEL', 'session:'.$this->id, $name);
   }
 
   /**
@@ -102,7 +102,7 @@ class Session implements ISession {
     if ($this->new) {
       $this->sessions->attach($this, $response);
       $this->new= false;
-    } else if ($this->protocol->send('TTL', 'session:'.$this->id) <= 0) {
+    } else if ($this->protocol->command('TTL', 'session:'.$this->id) <= 0) {
       $this->sessions->detach($this, $response);
     }
   }

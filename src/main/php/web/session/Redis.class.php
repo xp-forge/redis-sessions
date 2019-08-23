@@ -32,8 +32,8 @@ class Redis extends Sessions {
 
     // Redis doesn't store empty sets or hashes (and will delete empty sets and hashes)
     // Prevent this by adding a placeholder value.
-    $this->protocol->send('HSET', 'session:'.$id, '_', '.keep');
-    $this->protocol->send('EXPIRE', 'session:'.$id, $this->duration);
+    $this->protocol->command('HSET', 'session:'.$id, '_', '.keep');
+    $this->protocol->command('EXPIRE', 'session:'.$id, $this->duration);
     return new Session($this, $this->protocol, $id, true);
   }
 
@@ -44,7 +44,7 @@ class Redis extends Sessions {
    * @return web.session.ISession
    */
   public function open($id) {
-    if ($this->protocol->send('EXISTS', 'session:'.$id)) {
+    if ($this->protocol->command('EXISTS', 'session:'.$id)) {
       return new Session($this, $this->protocol, $id);
     }
     return null;
