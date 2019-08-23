@@ -8,6 +8,7 @@ use web\session\redis\Session;
  * Session factory connecting to a Redis server
  *
  * @see   https://redis.io/
+ * @test  xp://web.session.redis.unittest.RedisTest
  */
 class Redis extends Sessions {
   private $protocol, $rand;
@@ -15,10 +16,10 @@ class Redis extends Sessions {
   /**
    * Creates a new Redis session
    *
-   * @param string|util.URI $dsn
+   * @param string|util.URI|web.session.redis.RedisProtocol $conn
    */
-  public function __construct($dsn) {
-    $this->protocol= new RedisProtocol($dsn);
+  public function __construct($conn) {
+    $this->protocol= $conn instanceof RedisProtocol ? $conn : new RedisProtocol($conn);
     $this->rand= new Random();
   }
 
@@ -44,7 +45,10 @@ class Redis extends Sessions {
    * @return web.session.ISession
    */
   public function open($id) {
-    if ($this->protocol->command('EXISTS', 'session:'.$id)) {
+
+    // TTL of nonexistant values will be -2
+    $ttl= $this->protocol->command('TTL', 'session:'.$id);
+    if ($ttl > 0) {
       return new Session($this, $this->protocol, $id);
     }
     return null;
