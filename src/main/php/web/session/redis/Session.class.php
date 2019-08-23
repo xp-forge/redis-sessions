@@ -116,7 +116,7 @@ class Session implements ISession {
     if ($this->new) {
       $this->sessions->attach($this, $response);
       $this->new= false;
-    } else if ($this->protocol->command('TTL', 'session:'.$this->id) <= 0) {
+    } else if (time() >= $this->timeout) {
       $this->sessions->detach($this, $response);
     }
   }
