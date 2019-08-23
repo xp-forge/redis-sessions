@@ -117,6 +117,18 @@ class RedisProtocolTest extends TestCase {
   }
 
   #[@test]
+  public function get() {
+    $io= new Channel("\$5\r\nvalue\r\n");
+
+    $fixture= new RedisProtocol($io);
+    $fixture->connect();
+
+    $result= $fixture->send('GET', 'key');
+    $this->assertEquals("*2\r\n\$3\r\nGET\r\n\$3\r\nkey\r\n", $io->out);
+    $this->assertEquals('value', $result);
+  }
+
+  #[@test]
   public function get_non_existant() {
     $io= new Channel("\$-1\r\n");
 
@@ -129,15 +141,15 @@ class RedisProtocolTest extends TestCase {
   }
 
   #[@test]
-  public function get() {
-    $io= new Channel("\$5\r\nvalue\r\n");
+  public function get_empty_string() {
+    $io= new Channel("\$0\r\n\r\n");
 
     $fixture= new RedisProtocol($io);
     $fixture->connect();
 
     $result= $fixture->send('GET', 'key');
     $this->assertEquals("*2\r\n\$3\r\nGET\r\n\$3\r\nkey\r\n", $io->out);
-    $this->assertEquals('value', $result);
+    $this->assertEquals('', $result);
   }
 
   #[@test]
