@@ -40,7 +40,7 @@ class RedisProtocol implements Closeable {
     }
   }
 
-  /** @return util.Secret */
+  /** @return ?util.Secret */
   public function authentication() { return $this->auth; }
 
   /**

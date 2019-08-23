@@ -50,6 +50,14 @@ class RedisProtocolTest extends TestCase {
   }
 
   #[@test]
+  public function connect_returns_protocol_instance() {
+    $io= new Channel();
+
+    $fixture= new RedisProtocol($io);
+    $this->assertEquals($fixture, $fixture->connect());
+  }
+
+  #[@test]
   public function initially_not_connected() {
     $io= new Channel();
 
