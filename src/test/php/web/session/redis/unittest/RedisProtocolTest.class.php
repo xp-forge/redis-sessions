@@ -21,6 +21,17 @@ class RedisProtocolTest extends TestCase {
   }
 
   #[@test]
+  public function endpoint() {
+    $this->assertEquals('localhost:6379', (new RedisProtocol('redis://localhost'))->endpoint());
+  }
+
+  #[@test]
+  public function endpoint_with_port() {
+    $this->assertEquals('example.org:16379', (new RedisProtocol('redis://example.org:16379'))->endpoint());
+  }
+
+
+  #[@test]
   public function no_authentication() {
     $this->assertNull((new RedisProtocol('redis://localhost'))->authentication());
   }
