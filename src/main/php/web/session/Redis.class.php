@@ -35,7 +35,7 @@ class Redis extends Sessions {
     // Prevent this by adding a placeholder value.
     $this->protocol->command('HSET', 'session:'.$id, '_', '.keep');
     $this->protocol->command('EXPIRE', 'session:'.$id, $this->duration);
-    return new Session($this, $this->protocol, $id, true);
+    return new Session($this, $this->protocol, $id, time() + $this->duration, true);
   }
 
   /**
@@ -48,8 +48,8 @@ class Redis extends Sessions {
 
     // TTL of nonexistant values will be -2
     $ttl= $this->protocol->command('TTL', 'session:'.$id);
-    if ($ttl > 0) {
-      return new Session($this, $this->protocol, $id);
+    if ($ttl >= 0) {
+      return new Session($this, $this->protocol, $id, time() + $ttl);
     }
     return null;
   }

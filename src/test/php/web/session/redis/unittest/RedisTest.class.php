@@ -3,6 +3,7 @@
 use unittest\TestCase;
 use web\session\ISession;
 use web\session\Redis;
+use web\session\SessionInvalid;
 use web\session\redis\RedisProtocol;
 
 class RedisTest extends TestCase {
@@ -44,5 +45,21 @@ class RedisTest extends TestCase {
     $session= $fixture->open('test');
     $this->assertEquals("*2\r\n\$3\r\nTTL\r\n\$12\r\nsession:test\r\n", $io->out);
     $this->assertNull($session);
+  }
+
+  #[@test]
+  public function value() {
+    $io= new Channel(":86300\r\n\$7\r\n\"value\"\r\n");
+    $fixture= new Redis(new RedisProtocol($io));
+
+    $this->assertEquals('value', $fixture->open('test')->value('value'));
+  }
+
+  #[@test, @expect(SessionInvalid::class)]
+  public function invalid_session() {
+    $io= new Channel(":0\r\n");
+    $fixture= new Redis(new RedisProtocol($io));
+
+    $fixture->open('test')->value('value');
   }
 }

@@ -4,7 +4,7 @@ use web\session\ISession;
 use web\session\SessionInvalid;
 
 class Session implements ISession {
-  private $sessions, $protocol, $id, $new;
+  private $sessions, $protocol, $id, $timeout, $new;
 
   /**
    * Creates a new file-based session
@@ -12,12 +12,14 @@ class Session implements ISession {
    * @param  web.session.Sessions $sessions
    * @param  web.session.redis.RedisProtocol $protocol
    * @param  int $id
+   * @param  int $timeout
    * @param  bool $new
    */
-  public function __construct($sessions, $protocol, $id, $new= false) {
+  public function __construct($sessions, $protocol, $id, $timeout, $new= false) {
     $this->sessions= $sessions;
     $this->protocol= $protocol;
     $this->id= $id;
+    $this->timeout= $timeout;
     $this->new= $new;
   }
 
@@ -26,7 +28,7 @@ class Session implements ISession {
 
   /** @return bool */
   public function valid() {
-    return $this->protocol->command('TTL', 'session:'.$this->id) > 0;
+    return time() < $this->timeout;
   }
 
   /** @return void */
@@ -40,6 +42,9 @@ class Session implements ISession {
    * @return string[]
    */
   public function keys() {
+    if (time() >= $this->timeout) {
+      throw new SessionInvalid($this->id);
+    }
     $r= [];
     foreach ($this->protocol->command('HKEYS', 'session:'.$this->id) as $key) {
       '_' === $key || $r[]= $key;
@@ -56,6 +61,9 @@ class Session implements ISession {
    * @throws web.session.SessionInvalid
    */
   public function register($name, $value) {
+    if (time() >= $this->timeout) {
+      throw new SessionInvalid($this->id);
+    }
     $this->protocol->command('HSET', 'session:'.$this->id, $name, json_encode($value));
   }
 
@@ -68,6 +76,9 @@ class Session implements ISession {
    * @throws web.session.SessionInvalid
    */
   public function value($name, $default= null) {
+    if (time() >= $this->timeout) {
+      throw new SessionInvalid($this->id);
+    }
     $value= $this->protocol->command('HGET', 'session:'.$this->id, $name);
     return null === $value ? $default : json_decode($value, true);
   }
@@ -80,6 +91,9 @@ class Session implements ISession {
    * @throws web.session.SessionInvalid
    */
   public function remove($name) {
+    if (time() >= $this->timeout) {
+      throw new SessionInvalid($this->id);
+    }
     $this->protocol->command('HDEL', 'session:'.$this->id, $name);
   }
 
