@@ -4,6 +4,7 @@ use lang\Closeable;
 use peer\AuthenticationException;
 use peer\ProtocolException;
 use peer\Socket;
+use util\Secret;
 use util\URI;
 
 class RedisProtocol implements Closeable {
@@ -12,12 +13,18 @@ class RedisProtocol implements Closeable {
   /**
    * Creates a new protocol instance
    *
-   * @param  string|util.URI $dsn
+   * @param  string|util.URI|peer.Socket $conn
+   * @param  ?string|?util.Secret $auth
    */
-  public function __construct($dsn) {
-    $uri= $dsn instanceof URI ? $dsn : new URI($dsn);
-    $this->conn= new Socket($uri->host(), $uri->port() ?: 6379);
-    $this->auth= $uri->user();
+  public function __construct($conn, $auth= null) {
+    if ($conn instanceof Socket) {
+      $this->conn= $conn;
+      $this->auth= null === $auth ? null : ($auth instanceof Secret ? $auth : new Secret($auth));
+    } else {
+      $uri= $conn instanceof URI ? $conn : new URI($conn);
+      $this->conn= new Socket($uri->host(), $uri->port() ?: 6379);
+      $this->auth= null === $auth ? new Secret($uri->user()) : ($auth instanceof Secret ? $auth : new Secret($auth));
+    }
   }
 
   /**
@@ -30,13 +37,14 @@ class RedisProtocol implements Closeable {
   public function connect() {
     $this->conn->connect();
 
-    // Do not use send() and read() to prevent auth from leaking
+    // Do not use send() and read() to prevent auth from leaking into stacktraces
     if (null !== $this->auth) {
-      $this->conn->write(sprintf("*2\r\n\$4\r\nAUTH\r\n\$%d\r\n%s\r\n", strlen($this->auth), $this->auth));
+      $pass= $this->auth->reveal();
+      $this->conn->write(sprintf("*2\r\n\$4\r\nAUTH\r\n\$%d\r\n%s\r\n", strlen($pass), $pass));
       $r= $this->conn->read();
       if ("+OK\r\n" !== $r) {
         $this->conn->close();
-        throw new AuthenticationException(rtrim($r));
+        throw new AuthenticationException(rtrim($r), $this->auth);
       }
     }
 
