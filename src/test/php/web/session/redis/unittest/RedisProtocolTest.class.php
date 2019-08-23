@@ -1,6 +1,7 @@
 <?php namespace web\session\redis\unittest;
 
 use peer\AuthenticationException;
+use peer\ProtocolException;
 use peer\Socket;
 use unittest\TestCase;
 use util\Secret;
@@ -42,25 +43,23 @@ class RedisProtocolTest extends TestCase {
   #[@test]
   public function connect() {
     $io= new Channel();
-
     $fixture= new RedisProtocol($io);
-    $fixture->connect();
 
+    $fixture->connect();
     $this->assertTrue($io->connected);
   }
 
   #[@test]
   public function connect_returns_protocol_instance() {
     $io= new Channel();
-
     $fixture= new RedisProtocol($io);
+
     $this->assertEquals($fixture, $fixture->connect());
   }
 
   #[@test]
   public function initially_not_connected() {
     $io= new Channel();
-
     $fixture= new RedisProtocol($io);
 
     $this->assertFalse($io->connected);
@@ -69,28 +68,26 @@ class RedisProtocolTest extends TestCase {
   #[@test]
   public function automatically_connects_if_necessary() {
     $io= new Channel("+OK\r\n");
-
     $fixture= new RedisProtocol($io);
-    $fixture->send('ECHO', 'test');
 
+    $fixture->send('ECHO', 'test');
     $this->assertTrue($io->connected);
   }
 
   #[@test]
   public function authenticate() {
     $io= new Channel("+OK\r\n");
-
     $fixture= new RedisProtocol($io, 'password');
-    $fixture->connect();
 
+    $fixture->connect();
     $this->assertTrue($io->connected);
   }
 
   #[@test]
   public function authentication_failure() {
     $io= new Channel("-ERR password incorrect\r\n");
-
     $fixture= new RedisProtocol($io, 'password');
+
     try {
       $fixture->connect();
       $this->fail('No exception raised', null, AuthenticationException::class);
@@ -104,10 +101,7 @@ class RedisProtocolTest extends TestCase {
   public function set() {
     $io= new Channel("+OK\r\n");
 
-    $fixture= new RedisProtocol($io);
-    $fixture->connect();
-
-    $result= $fixture->send('SET', 'key', 'value');
+    $result= (new RedisProtocol($io))->send('SET', 'key', 'value');
     $this->assertEquals("*3\r\n\$3\r\nSET\r\n\$3\r\nkey\r\n\$5\r\nvalue\r\n", $io->out);
     $this->assertEquals('OK', $result);
   }
@@ -116,10 +110,7 @@ class RedisProtocolTest extends TestCase {
   public function exists() {
     $io= new Channel(":1\r\n");
 
-    $fixture= new RedisProtocol($io);
-    $fixture->connect();
-
-    $result= $fixture->send('EXISTS', 'key');
+    $result= (new RedisProtocol($io))->send('EXISTS', 'key');
     $this->assertEquals("*2\r\n\$6\r\nEXISTS\r\n\$3\r\nkey\r\n", $io->out);
     $this->assertEquals(1, $result);
   }
@@ -128,10 +119,7 @@ class RedisProtocolTest extends TestCase {
   public function get() {
     $io= new Channel("\$5\r\nvalue\r\n");
 
-    $fixture= new RedisProtocol($io);
-    $fixture->connect();
-
-    $result= $fixture->send('GET', 'key');
+    $result= (new RedisProtocol($io))->send('GET', 'key');
     $this->assertEquals("*2\r\n\$3\r\nGET\r\n\$3\r\nkey\r\n", $io->out);
     $this->assertEquals('value', $result);
   }
@@ -140,10 +128,7 @@ class RedisProtocolTest extends TestCase {
   public function get_non_existant() {
     $io= new Channel("\$-1\r\n");
 
-    $fixture= new RedisProtocol($io);
-    $fixture->connect();
-
-    $result= $fixture->send('GET', 'key');
+    $result= (new RedisProtocol($io))->send('GET', 'key');
     $this->assertEquals("*2\r\n\$3\r\nGET\r\n\$3\r\nkey\r\n", $io->out);
     $this->assertEquals(null, $result);
   }
@@ -152,10 +137,7 @@ class RedisProtocolTest extends TestCase {
   public function get_empty_string() {
     $io= new Channel("\$0\r\n\r\n");
 
-    $fixture= new RedisProtocol($io);
-    $fixture->connect();
-
-    $result= $fixture->send('GET', 'key');
+    $result= (new RedisProtocol($io))->send('GET', 'key');
     $this->assertEquals("*2\r\n\$3\r\nGET\r\n\$3\r\nkey\r\n", $io->out);
     $this->assertEquals('', $result);
   }
@@ -164,11 +146,14 @@ class RedisProtocolTest extends TestCase {
   public function keys() {
     $io= new Channel("*2\r\n\$3\r\nkey\r\n\$5\r\ncolor\r\n");
 
-    $fixture= new RedisProtocol($io);
-    $fixture->connect();
-
-    $result= $fixture->send('KEYS', '*');
+    $result= (new RedisProtocol($io))->send('KEYS', '*');
     $this->assertEquals("*2\r\n\$4\r\nKEYS\r\n\$1\r\n*\r\n", $io->out);
     $this->assertEquals(['key', 'color'], $result);
+  }
+
+  #[@test, @expect(ProtocolException::class)]
+  public function protocol_error() {
+    $io= new Channel("-ERR unknown command\r\n");
+    (new RedisProtocol($io))->send('NOT-A-REDIS-COMMAND');
   }
 }
