@@ -75,8 +75,6 @@ class RedisProtocol implements Closeable {
    */
   private function read() {
     $r= $this->conn->readLine();
-    // DEBUG \util\cmd\Console::writeLine('<<< ', addcslashes($r, "\r\n"));
-
     switch ($r[0]) {
       case ':': // integers
         return (int)substr($r, 1);
@@ -90,7 +88,7 @@ class RedisProtocol implements Closeable {
         do {
           $r.= $this->conn->readBinary(min(8192, $l - strlen($r)));
         } while (strlen($r) < $l && !$this->conn->eof());
-        $this->conn->readBinary(2);
+        $this->conn->readBinary(2);  // "\r\n"
         return $r;
 
       case '*': // arrays
@@ -121,7 +119,6 @@ class RedisProtocol implements Closeable {
       $s.= '$'.strlen($arg)."\r\n".$arg."\r\n";
     }
 
-    // DEBUG \util\cmd\Console::writeLine('>>> ', addcslashes($s, "\r\n"));
     $this->conn->write($s);
     return $this->read();
   }
