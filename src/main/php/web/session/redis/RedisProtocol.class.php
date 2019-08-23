@@ -7,6 +7,12 @@ use peer\Socket;
 use util\Secret;
 use util\URI;
 
+/**
+ * Redis protocol implementation
+ *
+ * @see   https://redis.io/topics/protocol
+ * @test  xp://web.session.redis.unittest.RedisProtocolTest
+ */
 class RedisProtocol implements Closeable {
   private $conn, $auth;
 
@@ -62,13 +68,13 @@ class RedisProtocol implements Closeable {
     // DEBUG \util\cmd\Console::writeLine('<<< ', addcslashes($r, "\r\n"));
 
     switch ($r[0]) {
-      case ':': // integer
+      case ':': // integers
         return (int)substr($r, 1, -2);
 
-      case '+': // inline
+      case '+': // simple strings
         return substr($r, 1, -2);
 
-      case '$': // bulk
+      case '$': // bulk strings
         if (-1 === ($l= (int)substr($r, 1, -2))) return null;
         $r= '';
         do {
@@ -77,7 +83,7 @@ class RedisProtocol implements Closeable {
         $this->conn->readBinary(2);
         return $r;
 
-      case '*': // multi-bulk
+      case '*': // arrays
         if (-1 === ($l= (int)substr($r, 1, -2))) return null;
         $r= [];
         for ($i= 0; $i < $l; $i++) {
@@ -85,7 +91,7 @@ class RedisProtocol implements Closeable {
         }
         return $r;
 
-      case '-': // error
+      case '-': // errors
         throw new ProtocolException(substr($r, 1, -2));
     }
   }
