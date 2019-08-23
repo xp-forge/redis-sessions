@@ -16,7 +16,7 @@ class Channel extends Socket {
     $this->connected= true;
   }
 
-  public function read($maxLen= 4096) {
+  public function readLine($maxLen= 4096) {
     if (!$this->connected) {
       throw new SocketException('Read of '.$maxLen.' bytes failed: Connection closed');
     }
@@ -26,7 +26,7 @@ class Channel extends Socket {
       $chunk= $this->in;
       $this->in= null;
     } else {
-      $chunk= substr($this->in, 0, $p + 1);
+      $chunk= rtrim(substr($this->in, 0, $p), "\r");
       $this->in= substr($this->in, $p + 1);
     }
     return $chunk;

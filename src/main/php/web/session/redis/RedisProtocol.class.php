@@ -47,10 +47,10 @@ class RedisProtocol implements Closeable {
     if (null !== $this->auth) {
       $pass= $this->auth->reveal();
       $this->conn->write(sprintf("*2\r\n\$4\r\nAUTH\r\n\$%d\r\n%s\r\n", strlen($pass), $pass));
-      $r= $this->conn->read();
-      if ("+OK\r\n" !== $r) {
+      $r= $this->conn->readLine();
+      if ('+OK' !== $r) {
         $this->conn->close();
-        throw new AuthenticationException(rtrim($r), $this->auth);
+        throw new AuthenticationException($r, $this->auth);
       }
     }
 
@@ -64,18 +64,18 @@ class RedisProtocol implements Closeable {
    * @throws peer.ProtocolException
    */
   private function read() {
-    $r= $this->conn->read();
+    $r= $this->conn->readLine();
     // DEBUG \util\cmd\Console::writeLine('<<< ', addcslashes($r, "\r\n"));
 
     switch ($r[0]) {
       case ':': // integers
-        return (int)substr($r, 1, -2);
+        return (int)substr($r, 1);
 
       case '+': // simple strings
-        return substr($r, 1, -2);
+        return substr($r, 1);
 
       case '$': // bulk strings
-        if (-1 === ($l= (int)substr($r, 1, -2))) return null;
+        if (-1 === ($l= (int)substr($r, 1))) return null;
         $r= '';
         do {
           $r.= $this->conn->readBinary(min(8192, $l - strlen($r)));
@@ -84,7 +84,7 @@ class RedisProtocol implements Closeable {
         return $r;
 
       case '*': // arrays
-        if (-1 === ($l= (int)substr($r, 1, -2))) return null;
+        if (-1 === ($l= (int)substr($r, 1))) return null;
         $r= [];
         for ($i= 0; $i < $l; $i++) {
           $r[]= $this->read();
@@ -92,7 +92,7 @@ class RedisProtocol implements Closeable {
         return $r;
 
       case '-': // errors
-        throw new ProtocolException(substr($r, 1, -2));
+        throw new ProtocolException(substr($r, 1));
     }
   }
 
