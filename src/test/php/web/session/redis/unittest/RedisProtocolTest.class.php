@@ -1,6 +1,7 @@
 <?php namespace web\session\redis\unittest;
 
 use peer\AuthenticationException;
+use peer\ConnectException;
 use peer\ProtocolException;
 use peer\Socket;
 use unittest\TestCase;
@@ -47,6 +48,12 @@ class RedisProtocolTest extends TestCase {
 
     $fixture->connect();
     $this->assertTrue($io->connected);
+  }
+
+  #[@test, @expect(ConnectException::class)]
+  public function cannot_connect() {
+    $io= new Channel(false);
+    (new RedisProtocol($io))->connect();
   }
 
   #[@test]

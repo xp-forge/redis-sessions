@@ -1,5 +1,6 @@
 <?php namespace web\session\redis\unittest;
 
+use peer\ConnectException;
 use peer\Socket;
 use peer\SocketException;
 
@@ -13,6 +14,9 @@ class Channel extends Socket {
   }
 
   public function connect($timeout= 2) {
+    if (false === $this->in) {
+      throw new ConnectException('Cannot connect');
+    }
     $this->connected= true;
   }
 
