@@ -10,7 +10,7 @@ class Session implements ISession {
    * Creates a new file-based session
    *
    * @param  web.session.Sessions $sessions
-   * @param  web.session.redis.RedisProtocol $protocol
+   * @param  io.redis.RedisProtocol $protocol
    * @param  int $id
    * @param  int $timeout
    * @param  bool $new

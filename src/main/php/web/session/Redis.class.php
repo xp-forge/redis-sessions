@@ -1,7 +1,7 @@
 <?php namespace web\session;
 
+use io\redis\RedisProtocol;
 use util\Random;
-use web\session\redis\RedisProtocol;
 use web\session\redis\Session;
 
 /**
@@ -16,7 +16,7 @@ class Redis extends Sessions {
   /**
    * Creates a new Redis session
    *
-   * @param string|util.URI|web.session.redis.RedisProtocol $conn
+   * @param string|util.URI|io.redis.RedisProtocol $conn
    */
   public function __construct($conn) {
     $this->protocol= $conn instanceof RedisProtocol ? $conn : new RedisProtocol($conn);

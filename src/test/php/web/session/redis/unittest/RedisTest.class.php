@@ -1,10 +1,10 @@
 <?php namespace web\session\redis\unittest;
 
+use io\redis\RedisProtocol;
 use unittest\TestCase;
 use web\session\ISession;
 use web\session\Redis;
 use web\session\SessionInvalid;
-use web\session\redis\RedisProtocol;
 
 class RedisTest extends TestCase {
 
