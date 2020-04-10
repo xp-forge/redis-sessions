@@ -3,6 +3,10 @@ Redis Sessions change log
 
 ## ?.?.? / ????-??-??
 
+## 1.0.1 / 2020-04-10
+
+* Made compatible with `xp-forge/uri` version 2.0.0 - @thekid
+
 ## 1.0.0 / 2020-04-05
 
 * Implemented xp-framework/rfc#334: Drop PHP 5.6. The minimum required
