@@ -1,14 +1,12 @@
 <?php namespace web\session\redis\unittest;
 
 use io\redis\RedisProtocol;
-use unittest\TestCase;
-use web\session\ISession;
-use web\session\Redis;
-use web\session\SessionInvalid;
+use unittest\{Expect, Test, TestCase};
+use web\session\{ISession, Redis, SessionInvalid};
 
 class RedisTest extends TestCase {
 
-  #[@test]
+  #[Test]
   public function create_session() {
     $io= new Channel("+OK\r\n:1\r\n");
     $fixture= new Redis(new RedisProtocol($io));
@@ -27,7 +25,7 @@ class RedisTest extends TestCase {
     );
   }
 
-  #[@test]
+  #[Test]
   public function open_session() {
     $io= new Channel(":86300\r\n");
     $fixture= new Redis(new RedisProtocol($io));
@@ -37,7 +35,7 @@ class RedisTest extends TestCase {
     $this->assertInstanceOf(ISession::class, $session);
   }
 
-  #[@test]
+  #[Test]
   public function open_expired_session() {
     $io= new Channel(":-2\r\n");
     $fixture= new Redis(new RedisProtocol($io));
@@ -47,7 +45,7 @@ class RedisTest extends TestCase {
     $this->assertNull($session);
   }
 
-  #[@test]
+  #[Test]
   public function value() {
     $io= new Channel(":86300\r\n\$7\r\n\"value\"\r\n");
     $fixture= new Redis(new RedisProtocol($io));
@@ -55,7 +53,7 @@ class RedisTest extends TestCase {
     $this->assertEquals('value', $fixture->open('test')->value('value'));
   }
 
-  #[@test, @expect(SessionInvalid::class)]
+  #[Test, Expect(SessionInvalid::class)]
   public function invalid_session() {
     $io= new Channel(":0\r\n");
     $fixture= new Redis(new RedisProtocol($io));
