@@ -3,6 +3,12 @@ Redis Sessions change log
 
 ## ?.?.? / ????-??-??
 
+## 1.0.2 / 2021-10-24
+
+* Made compatible with XP 11 as well as new major versions of
+  `xp-framework/networking` and `xp-forge/sessions`
+  (@thekid)
+
 ## 1.0.1 / 2020-04-10
 
 * Made compatible with `xp-forge/uri` version 2.0.0 - @thekid
