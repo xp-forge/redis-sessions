@@ -3,6 +3,12 @@ Redis Sessions change log
 
 ## ?.?.? / ????-??-??
 
+## 1.1.0 / 2022-04-12
+
+* Merged PR #2: Make naming consistent with other session implementations.
+  The entry point class is now called `web.session.InRedis`
+  (@thekid)
+
 ## 1.0.2 / 2021-10-24
 
 * Made compatible with XP 11 as well as new major versions of
