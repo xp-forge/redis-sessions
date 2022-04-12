@@ -2,14 +2,14 @@
 
 use io\redis\RedisProtocol;
 use unittest\{Assert, Expect, Test, TestCase};
-use web\session\{ISession, Redis, SessionInvalid};
+use web\session\{ISession, InRedis, SessionInvalid};
 
 class RedisTest {
 
   #[Test]
   public function create_session() {
     $io= new Channel("+OK\r\n:1\r\n");
-    $fixture= new Redis(new RedisProtocol($io));
+    $fixture= new InRedis(new RedisProtocol($io));
 
     $session= $fixture->create();
     $id= $session->id();
@@ -28,7 +28,7 @@ class RedisTest {
   #[Test]
   public function open_session() {
     $io= new Channel(":86300\r\n");
-    $fixture= new Redis(new RedisProtocol($io));
+    $fixture= new InRedis(new RedisProtocol($io));
 
     $session= $fixture->open('test');
     Assert::equals("*2\r\n\$3\r\nTTL\r\n\$12\r\nsession:test\r\n", $io->out);
@@ -38,7 +38,7 @@ class RedisTest {
   #[Test]
   public function open_expired_session() {
     $io= new Channel(":-2\r\n");
-    $fixture= new Redis(new RedisProtocol($io));
+    $fixture= new InRedis(new RedisProtocol($io));
 
     $session= $fixture->open('test');
     Assert::equals("*2\r\n\$3\r\nTTL\r\n\$12\r\nsession:test\r\n", $io->out);
@@ -48,7 +48,7 @@ class RedisTest {
   #[Test]
   public function value() {
     $io= new Channel(":86300\r\n\$7\r\n\"value\"\r\n");
-    $fixture= new Redis(new RedisProtocol($io));
+    $fixture= new InRedis(new RedisProtocol($io));
 
     Assert::equals('value', $fixture->open('test')->value('value'));
   }
@@ -56,7 +56,7 @@ class RedisTest {
   #[Test, Expect(SessionInvalid::class)]
   public function invalid_session() {
     $io= new Channel(":0\r\n");
-    $fixture= new Redis(new RedisProtocol($io));
+    $fixture= new InRedis(new RedisProtocol($io));
 
     $fixture->open('test')->value('value');
   }

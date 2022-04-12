@@ -14,9 +14,9 @@ Example
 -------
 
 ```php
-use web\session\{Sessions, Redis};
+use web\session\{Sessions, InRedis};
 
-$inject->bind(Sessions::class, new Redis('redis://localhost'));
+$inject->bind(Sessions::class, new InRedis('redis://localhost'));
 ``` 
 
 To use authentication, pass it as username in the connection string, e.g. *redis://secret@localhost*.
