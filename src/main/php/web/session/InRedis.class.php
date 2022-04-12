@@ -7,9 +7,10 @@ use web\session\redis\Session;
 /**
  * Session factory connecting to a Redis server
  *
- * @deprecated Use InRedis instead!
+ * @see   https://redis.io/
+ * @test  web.session.redis.unittest.RedisTest
  */
-class Redis extends Sessions {
+class InRedis extends Sessions {
   private $protocol, $rand;
 
   /**
