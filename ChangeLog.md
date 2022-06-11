@@ -3,6 +3,10 @@ Redis Sessions change log
 
 ## ?.?.? / ????-??-??
 
+## 1.1.1 / 2022-06-11
+
+* Added compatibility with `xp-forge/sessions` version 3.0 - @thekid
+
 ## 1.1.0 / 2022-04-12
 
 * Merged PR #2: Make naming consistent with other session implementations.
