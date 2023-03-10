@@ -1,7 +1,7 @@
 <?php namespace web\session\redis\unittest;
 
 use io\redis\RedisProtocol;
-use unittest\{Assert, Expect, Test, TestCase};
+use test\{Assert, Expect, Test, TestCase};
 use web\session\{ISession, InRedis, SessionInvalid};
 
 class RedisTest {
