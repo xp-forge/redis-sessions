@@ -3,6 +3,8 @@ Redis Sessions change log
 
 ## ?.?.? / ????-??-??
 
+* Merged PR #3: Migrate to new testing library - @thekid
+
 ## 1.1.1 / 2022-06-11
 
 * Added compatibility with `xp-forge/sessions` version 3.0 - @thekid
