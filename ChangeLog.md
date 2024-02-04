@@ -3,6 +3,9 @@ Redis Sessions change log
 
 ## ?.?.? / ????-??-??
 
+## 2.0.0 / 2024-02-04
+
+* Implemented xp-framework/rfc#341: Drop XP <= 9 compatibility - @thekid
 * Added PHP 8.4 to the test matrix - @thekid
 * Merged PR #3: Migrate to new testing library - @thekid
 
