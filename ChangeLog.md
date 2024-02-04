@@ -3,6 +3,7 @@ Redis Sessions change log
 
 ## ?.?.? / ????-??-??
 
+* Added PHP 8.4 to the test matrix - @thekid
 * Merged PR #3: Migrate to new testing library - @thekid
 
 ## 1.1.1 / 2022-06-11
