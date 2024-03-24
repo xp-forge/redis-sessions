@@ -3,6 +3,10 @@ Redis Sessions change log
 
 ## ?.?.? / ????-??-??
 
+## 2.1.0 / 2024-03-24
+
+* Made compatible with XP 12 - @thekid
+
 ## 2.0.0 / 2024-02-04
 
 * **Heads up**: Removed deprecated `web.session.Redis` - @thekid
