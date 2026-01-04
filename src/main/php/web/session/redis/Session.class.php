@@ -1,10 +1,9 @@
 <?php namespace web\session\redis;
 
-use web\session\ISession;
-use web\session\SessionInvalid;
+use web\session\{Persistence, SessionInvalid};
 
-class Session implements ISession {
-  private $sessions, $protocol, $id, $timeout, $new;
+class Session extends Persistence {
+  private $protocol, $id;
 
   /**
    * Creates a new file-based session
@@ -12,27 +11,22 @@ class Session implements ISession {
    * @param  web.session.Sessions $sessions
    * @param  io.redis.RedisProtocol $protocol
    * @param  int $id
-   * @param  int $timeout
-   * @param  bool $new
+   * @param  int $expires
+   * @param  bool $detached
    */
-  public function __construct($sessions, $protocol, $id, $timeout, $new= false) {
-    $this->sessions= $sessions;
+  public function __construct($sessions, $protocol, $id, $expires, $detached= false) {
+    parent::__construct($sessions, $detached, $expires);
     $this->protocol= $protocol;
     $this->id= $id;
-    $this->timeout= $timeout;
-    $this->new= $new;
   }
 
   /** @return string */
   public function id() { return $this->id; }
 
-  /** @return bool */
-  public function valid() {
-    return time() < $this->timeout;
-  }
-
   /** @return void */
   public function destroy() {
+    $this->expires= time() - 1;
+    $this->detached= false;
     $this->protocol->command('DEL', 'session:'.$this->id);
   }
 
@@ -42,7 +36,7 @@ class Session implements ISession {
    * @return string[]
    */
   public function keys() {
-    if (time() >= $this->timeout) {
+    if (time() >= $this->expires) {
       throw new SessionInvalid($this->id);
     }
     $r= [];
@@ -61,7 +55,7 @@ class Session implements ISession {
    * @throws web.session.SessionInvalid
    */
   public function register($name, $value) {
-    if (time() >= $this->timeout) {
+    if (time() >= $this->expires) {
       throw new SessionInvalid($this->id);
     }
     $this->protocol->command('HSET', 'session:'.$this->id, $name, json_encode($value));
@@ -76,7 +70,7 @@ class Session implements ISession {
    * @throws web.session.SessionInvalid
    */
   public function value($name, $default= null) {
-    if (time() >= $this->timeout) {
+    if (time() >= $this->expires) {
       throw new SessionInvalid($this->id);
     }
     $value= $this->protocol->command('HGET', 'session:'.$this->id, $name);
@@ -91,33 +85,9 @@ class Session implements ISession {
    * @throws web.session.SessionInvalid
    */
   public function remove($name) {
-    if (time() >= $this->timeout) {
+    if (time() >= $this->expires) {
       throw new SessionInvalid($this->id);
     }
     $this->protocol->command('HDEL', 'session:'.$this->id, $name);
-  }
-
-  /**
-   * Closes this session
-   *
-   * @return void
-   */
-  public function close() {
-    // NOOP
-  }
-
-  /**
-   * Transmits this session to the response
-   *
-   * @param  web.Response $response
-   * @return void
-   */
-  public function transmit($response) {
-    if ($this->new) {
-      $this->sessions->attach($this, $response);
-      $this->new= false;
-    } else if (time() >= $this->timeout) {
-      $this->sessions->detach($this, $response);
-    }
   }
 }

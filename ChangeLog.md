@@ -3,6 +3,7 @@ Redis Sessions change log
 
 ## ?.?.? / ????-??-??
 
+* **Heads up:** Require `xp-forge/sessions` version 4.0+ - @thekid
 * **Heads up:** Dropped support for PHP < 7.4, see xp-framework/rfc#343
   (@thekid)
 * Added PHP 8.5 and PHP 8.6 to the test matrix - @thekid
